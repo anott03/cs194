@@ -1,21 +1,29 @@
 {-# OPTIONS_GHC -Wall #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module LogAnalysis where
 
 import Log
+import Data.Bifunctor
 
-parseMessageType :: String -> MessageType
-parseMessageType s
-    | take 1 s == "I" = Info
-    | take 1 s == "W" = Warning
-    | take 1 s == "E" = Error 0
+takeUntilWhitespace:: [Char] -> ([Char], [Char])
+takeUntilWhitespace (h:t)
+    | null (h:t) = ("", t)
+    | h == ' ' = ("", t)
+    | otherwise = (h : fst(takeUntilWhitespace t), snd $ takeUntilWhitespace t)
+
+parseMessageType :: [Char] -> MessageType
+parseMessageType (x:xs)
+    | x == 'I' = Info
+    | x == 'W' = Warning
+    | x == 'E' = Error (read (fst $ takeUntilWhitespace xs) :: Int)
     | otherwise = Error 0
 
-parseTimeStamp :: String -> TimeStamp
-parseTimeStamp _ = 0;
+parseTimeStamp :: [Char] -> (TimeStamp, [Char])
+parseTimeStamp s = first read (takeUntilWhitespace s)
 
-parseText :: String -> String
+parseText :: [Char] -> [Char]
 parseText s = s;
 
-parseMessage :: String -> LogMessage
+parseMessage :: [Char] -> LogMessage
 parseMessage s =
-    LogMessage (parseMessageType s) (parseTimeStamp s) (parseText s)
+    LogMessage (parseMessageType $ fst $ takeUntilWhitespace s)
