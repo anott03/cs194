@@ -2,8 +2,15 @@ module Main where
 
 import LogAnalysis
 
+exec :: String -> IO ()
+exec s
+    | s == "" = do
+        print ""
+    | otherwise = do
+        print $ LogAnalysis.parseMessage $ fst $ takeUntil s '\n'
+        exec $ snd $ takeUntil s '\n'
+
 main :: IO ()
-main = do
-    print $ LogAnalysis.parseMessage "I 0 info message"
-    print $ LogAnalysis.parseMessage "W 4 warning message"
-    print $ LogAnalysis.parseMessage "E 6 7 error message"
+main = do  
+    contents <- getContents
+    exec contents
